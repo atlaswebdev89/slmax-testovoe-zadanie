@@ -2,7 +2,7 @@
 
 namespace app\users;
 
-class User
+class User extends UsersList
 {
-
+    public static $className = __CLASS__;
 }
