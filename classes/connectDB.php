@@ -56,11 +56,6 @@ class connectDB
                 $row->execute($data);
 
                 return $row->fetchAll();
-            case 'count':
-                $row = self::$connect->prepare($sql);
-                $row->execute($data);
-
-                return $row->rowCount();
             case 'insert':
                 $row = self::$connect->prepare($sql);
                 $row->execute($data);

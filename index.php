@@ -21,55 +21,35 @@ require_once CLASSES . '/UsersList.php';
 require_once CLASSES . '/User.php';
 try {
 
-//    $r = new UsersList();
-//    print_r($r);
-//    echo $r::class . PHP_EOL;
-//    echo get_class($r) . PHP_EOL;
-//
-//    echo $r->getClassDynamic($r) . PHP_EOL;
-//    echo UsersList::getClass() . PHP_EOL;
-//    echo UsersList::getClassName() . PHP_EOL;
-//
-//
-//    $a = new Users(['123' => 'asd']);
-//    echo $a->genderName((boolean)344) . PHP_EOL;
-//
-//    echo User::getClassName() . PHP_EOL;
-//
-//
-////    $b              = new Users(123);
-////    $b->cityOfBirth = "Brest";
-////    $b->dateBirth   = "1989-01-11";
-////    $b->gender      = true;
-////    $b->name        = "Dima";
-////
-////    foreach ($b as $key => $item) {
-////        print_r($item);
-////    }
-//    $d = new Users(['ety' => 123]);
-//    $k = new Users(['ety' => 123]);
-//
-//////    echo time();
-////    echo date('md') . PHP_EOL;
-////    echo date('Y-m-d') . PHP_EOL;
 //    echo PHP_EOL . PHP_EOL . PHP_EOL;
-//
-//    echo Users::agePerson(date: "1989/01/11");
-//
-//
-//    echo PHP_EOL . PHP_EOL . PHP_EOL;
+    for ($i = 0; $i < 20; $i++) {
+        new Users(['name' => 'Иваны', 'surname   ' => 'Ацфацfe', 'date_birth' => '20-01-2017', 'gender' => 1]);
+    }
 
-    $c = new Users(['name' => 'Иваны', 'surname   ' => 'Ацфацfe', 'date_birth' => '20-01-2017', 'gender' => 0]);
-    print_r($c);
-//    $c->deletePerson();
-    print_r($c);
-    $c->gender = '1';
-    $c->name   = "Коля";
-    $c->savePerson();
-    print_r($c);
-    $r = new Users(96);
-    print_r($r);
-    echo $c->deletePerson();
+    $pr1 = new Users(371);
+    if ($pr1) {
+        $pr1->name    = 'Коля';
+        $pr1->surname = "Николаев";
+        $pr1->savePerson();
+    }
+    $pr2 = new Users(['name' => 'Николай', 'surname   ' => 'Николаевич', 'date_birth' => '20-01-2000', 'gender' => 1]);
+    if ($pr2) {
+        $pr2->name    = 'Коля';
+        $pr2->surname = "Николаев";
+        $pr2->savePerson();
+    }
+    $age    = Users::agePerson($pr2->date_birth);
+    $gender = Users::genderName($pr2->gender);
+    echo $age . " " . $gender . PHP_EOL;
+
+    $k   = new UsersList();
+    $vf1 = new UsersList(['condition' => 'more']);
+    $vf2 = new UsersList(['condition' => 'less', 'id' => 20]);
+    $vf3 = new UsersList(['condition' => 'noequal', 'id' => 20]);
+
+    $persons = $k->getPersonsArray();
+    echo $k->deletePersons();
+    echo "DONE:" . PHP_EOL;
 } catch (\Throwable $e) {
     echo $e->getMessage() . PHP_EOL;
 }

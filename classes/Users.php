@@ -22,7 +22,7 @@ class Users
     public static $count = 0;
 
     const TYPE_SINGLE = 'single';
-    const TYPE_ARRAY  = 'arraydata';
+    const TYPE_ARRAY  = 'array';
     const TYPE_COUNT  = 'count';
     const TYPE_CHANGE = 'change';
     const TYPE_INSERT = 'insert';
@@ -34,7 +34,11 @@ class Users
         $this->pdo = $this->connect();
 
         if (!empty($data) && gettype($data) == 'integer') {
-            $this->getPerson($data);
+            try {
+                $this->getPerson($data);
+            } catch (Exception $e) {
+                echo $e->getMessage();
+            }
         }
 
         if (gettype($data) == 'array') {
@@ -44,8 +48,6 @@ class Users
 
             $this->createPerson($data);
         }
-
-        echo "CLASS CREATED" . PHP_EOL;
     }
 
 
@@ -96,7 +98,7 @@ class Users
 
     protected function formatterInput(array|object $data): array
     {
-        $birth = (isset($data['date_birth'])) ? date('Y-m-d', strtotime($data['date_birth'])) : null;
+        $birth = (isset($data['date_birth']) && !empty($data['date_birth'])) ? date('Y-m-d', strtotime($data['date_birth'])) : null;
 
         return [
             'name'          => $data['name'] ?? '',
@@ -109,24 +111,41 @@ class Users
 
     protected function formatterOutput(array|object $data)
     {
-        $gender = (isset($data['gender'])) ? self::genderName((bool)$data['gender']) : null;
-
         return [
             'id'            => $data['id'],
             'name'          => $data['name'] ?? '',
             'surname'       => $data['surname'] ?? '',
             'date_birth'    => $data['date_birth'] ?? '',
-            'gender'        => $gender,
+            'gender'        => $data['gender'] ?? '',
             'city_of_birth' => $data['city_of_birth'] ?? null
         ];
+    }
+
+    public function formaterPerson(array|object $data = [])
+    {
+        $human     = new \stdClass();
+        $attr      = get_object_vars($this);
+        $attr      = $this->formatterInput($attr);
+        $human->id = ($this->id) ?? '';
+        unset($attr['pdo']);
+        foreach ($attr as $key => $item) {
+            $human->$key = $item;
+        }
+        if (in_array('age', $data)) {
+            $human->age = self::agePerson($human->date_birth);
+        }
+
+        if (in_array('pretty_gender', $data)) {
+            $human->gender = self::genderName(((bool)$attr['gender']));
+        }
+
+
+        return $human;
     }
 
     public function savePerson(array|object $data = [])
     {
         $attr = get_object_vars($this);
-        if ($attr['gender'] == self::$men) $attr['gender'] = 1;
-        if ($attr['gender'] == self::$women) $attr['gender'] = 0;
-
         $attr = $this->validate($attr);
         $attr = $this->formatterInput($attr);
         if (isset($this->id)) {
@@ -158,7 +177,7 @@ class Users
         $sql    = "update slamx set name=:name, surname=:surname, gender=:gender, date_birth=:date_birth, city_of_birth=:city_of_birth where id=:id";
         $result = $this->pdo->query($sql, self::TYPE_CHANGE, $data);
         if (!empty($result)) {
-            echo "DATA UPDATE" . PHP_EOL;
+            echo PHP_EOL . "DATA UPDATE person with id=" . $data['id'] . PHP_EOL;
         }
     }
 
@@ -170,7 +189,7 @@ class Users
             $result = $this->formatterOutput($result);
             $this->load($result);
         } else {
-            throw new Exception("Not found person in databases");
+            throw new Exception("Not found person in databases with id=" . $id);
         }
     }
 
@@ -181,6 +200,8 @@ class Users
             $result = $this->pdo->query($sql, self::TYPE_CHANGE, ['id' => $this->id]);
             if (!empty($result)) {
                 $this->attrDelete();
+
+                return true;
             }
         }
     }
@@ -193,22 +214,10 @@ class Users
         }
     }
 
-    public function changePerson(array $data)
-    {
-        if (!empty ($data) && gettype($data) == "array") {
-            foreach ($data as $key => $newValue) {
 
-            }
-        }
-    }
-
-    public function __destruct()
+    public static function agePerson(string $date = null): int|null
     {
-        echo "Object delete" . PHP_EOL;
-    }
-
-    public static function agePerson(string $date): int
-    {
+        if (!isset($date)) return null;
         $currentYear = date('Y');
         $yearPerson  = strtotime($date); //unixtime
         $age         = $currentYear - date('Y', $yearPerson);
@@ -222,7 +231,7 @@ class Users
     public static function genderName(bool|int $value): string
     {
 
-        if (isset($value) && gettype($value) == 'boolean') {
+        if (isset($value)) {
             return ($value) ? static::$men : static::$women;
         }
         throw new Exception("Don't return gender persons");
