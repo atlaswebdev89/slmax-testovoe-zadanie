@@ -1,0 +1,49 @@
+version: "3.8"
+
+networks:
+  slmax:
+    driver: bridge
+
+volumes:
+  slmax-mysql:
+
+# Command в докер compose переопределяет CMD в Dockerfile
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-server-slmax
+    restart: always
+    ports:
+      - 8805:3306
+    environment:
+      MYSQL_DATABASE: slmax
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./dump:/docker-entrypoint-initdb.d
+      - slmax-mysql:/var/lib/mysql
+    networks:
+      - slmax
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-slmax
+    restart: always
+    ports:
+      - 8802:80
+    environment:
+      PMA_HOST: mysql
+    depends_on:
+      - mysql
+    networks:
+      - slmax
+
+  adminer:
+    image: adminer
+    container_name: db_adminer-slmax
+    restart: always
+    ports:
+      - 8803:8080
+    networks:
+      - slmax
